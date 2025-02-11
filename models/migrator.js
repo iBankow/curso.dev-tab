@@ -46,7 +46,7 @@ async function runPedingMigrations() {
 
 const migrator = {
   listPendingMigrations,
-  runPedingMigrations
-}
+  runPedingMigrations,
+};
 
-export default migrator
+export default migrator;
