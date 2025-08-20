@@ -2,6 +2,37 @@ import database from "infra/database";
 import password from "models/password";
 import { ValidationError, NotFoundError } from "infra/errors";
 
+async function findOneById(id) {
+  const userFound = await runSelectQuery(id);
+
+  return userFound;
+
+  async function runSelectQuery(id) {
+    const results = await database.query({
+      text: `
+        SELECT
+          *
+        FROM
+          users
+        WHERE
+          id = $1
+        LIMIT
+          1
+        ;`,
+      values: [id],
+    });
+
+    if (results.rowCount === 0) {
+      throw new NotFoundError({
+        message: "O id informado não foi encontrado no sistema.",
+        action: "Verifique se o id está digitado corretamente.",
+      });
+    }
+
+    return results.rows[0];
+  }
+}
+
 async function findOneByUsername(username) {
   const userFound = await runSelectQuery(username);
 
@@ -10,13 +41,13 @@ async function findOneByUsername(username) {
   async function runSelectQuery(username) {
     const results = await database.query({
       text: `
-        SELECT 
-          * 
+        SELECT
+          *
         FROM
-          users 
-        WHERE 
+          users
+        WHERE
           LOWER(username) = LOWER($1)
-        LIMIT 
+        LIMIT
           1
         ;`,
       values: [username],
@@ -41,13 +72,13 @@ async function findOneByEmail(email) {
   async function runSelectQuery(email) {
     const results = await database.query({
       text: `
-        SELECT 
-          * 
+        SELECT
+          *
         FROM
-          users 
-        WHERE 
+          users
+        WHERE
           LOWER(email) = LOWER($1)
-        LIMIT 
+        LIMIT
           1
         ;`,
       values: [email],
@@ -70,17 +101,16 @@ async function create(userInputValues) {
   await hashPasswordInObject(userInputValues);
 
   const newUser = await runInsertQuery(userInputValues);
-
   return newUser;
 
   async function runInsertQuery(userInputValues) {
     const results = await database.query({
       text: `
-        INSERT INTO 
-          users (username, email, password) 
-        VALUES 
+        INSERT INTO
+          users (username, email, password)
+        VALUES
           ($1, $2, $3)
-        RETURNING 
+        RETURNING
           *
         ;`,
       values: [
@@ -89,7 +119,6 @@ async function create(userInputValues) {
         userInputValues.password,
       ],
     });
-
     return results.rows[0];
   }
 }
@@ -98,12 +127,7 @@ async function update(username, userInputValues) {
   const currentUser = await findOneByUsername(username);
 
   if ("username" in userInputValues) {
-    if (
-      currentUser.username.toLowerCase() !==
-      userInputValues.username.toLowerCase()
-    ) {
-      await validateUniqueUsername(userInputValues.username);
-    }
+    await validateUniqueUsername(userInputValues.username);
   }
 
   if ("email" in userInputValues) {
@@ -117,24 +141,22 @@ async function update(username, userInputValues) {
   const userWithNewValues = { ...currentUser, ...userInputValues };
 
   const updatedUser = await runUpdateQuery(userWithNewValues);
-
   return updatedUser;
 
   async function runUpdateQuery(userWithNewValues) {
     const results = await database.query({
       text: `
-        UPDATE 
+        UPDATE
           users
         SET
           username = $2,
           email = $3,
           password = $4,
           updated_at = timezone('utc', now())
-        WHERE 
+        WHERE
           id = $1
-        RETURNING 
+        RETURNING
           *
-        ;
       `,
       values: [
         userWithNewValues.id,
@@ -151,11 +173,12 @@ async function update(username, userInputValues) {
 async function validateUniqueUsername(username) {
   const results = await database.query({
     text: `
-      SELECT 
-        username 
+      SELECT
+        username
       FROM
-        users 
-      WHERE LOWER(username) = LOWER($1)
+        users
+      WHERE
+        LOWER(username) = LOWER($1)
       ;`,
     values: [username],
   });
@@ -171,11 +194,12 @@ async function validateUniqueUsername(username) {
 async function validateUniqueEmail(email) {
   const results = await database.query({
     text: `
-      SELECT 
-        email 
+      SELECT
+        email
       FROM
-        users 
-      WHERE LOWER(email) = LOWER($1)
+        users
+      WHERE
+        LOWER(email) = LOWER($1)
       ;`,
     values: [email],
   });
@@ -195,6 +219,7 @@ async function hashPasswordInObject(userInputValues) {
 
 const user = {
   create,
+  findOneById,
   findOneByUsername,
   findOneByEmail,
   update,
