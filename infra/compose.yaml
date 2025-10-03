@@ -6,3 +6,9 @@ services:
     image: postgres:16.0-alpine3.18
     env_file:
       - ../.env.development
+  mailcatcher:
+    container_name: "mailcatcher-dev"
+    image: "sj26/mailcatcher"
+    ports:
+      - "1025:1025"
+      - "1080:1080"
