@@ -132,16 +132,19 @@ describe("PATCH /api/v1/users/[username]", () => {
         activatedUser2.id,
       );
 
-      const response = await fetch("http://localhost:3000/api/v1/users/userTarget1", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Cookie: `session_id=${sessionObject2.token}`,
+      const response = await fetch(
+        "http://localhost:3000/api/v1/users/userTarget1",
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `session_id=${sessionObject2.token}`,
+          },
+          body: JSON.stringify({
+            username: "userTarget3",
+          }),
         },
-        body: JSON.stringify({
-          username: "userTarget3",
-        }),
-      });
+      );
 
       expect(response.status).toBe(403);
 
@@ -336,6 +339,58 @@ describe("PATCH /api/v1/users/[username]", () => {
 
       expect(inCorrectPasswordMatch).toBe(false);
       expect(correctPasswordMatch).toBe(true);
+    });
+  });
+
+  describe("Privileged user", () => {
+    test("With `update:user:others` targeting 'defaultUser'", async () => {
+      const privilegedUser = await orchestrator.createUser();
+      const activatedPrivilegedUser =
+        await orchestrator.activateUser(privilegedUser);
+
+      await orchestrator.addFeaturesToUser(activatedPrivilegedUser, [
+        "update:user:others",
+      ]);
+
+      const privilegedUserSession = await orchestrator.createSession(
+        activatedPrivilegedUser.id,
+      );
+
+      const defaultUser = await orchestrator.createUser();
+
+      const response = await fetch(
+        `http://localhost:3000/api/v1/users/${defaultUser.username}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Cookie: `session_id=${privilegedUserSession.token}`,
+          },
+          body: JSON.stringify({
+            username: "AlteredDefaultUser",
+          }),
+        },
+      );
+
+      expect(response.status).toBe(200);
+
+      const responseBody = await response.json();
+
+      expect(responseBody).toEqual({
+        id: defaultUser.id,
+        username: "AlteredDefaultUser",
+        email: defaultUser.email,
+        features: defaultUser.features,
+        password: defaultUser.password,
+        created_at: responseBody.created_at,
+        updated_at: responseBody.updated_at,
+      });
+
+      expect(uuidVersion(responseBody.id)).toEqual(4);
+      expect(Date.parse(responseBody.created_at)).not.toBeNaN();
+      expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+
+      expect(responseBody.updated_at > responseBody.created_at).toBe(true);
     });
   });
 });
