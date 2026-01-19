@@ -5,6 +5,7 @@ import database from "infra/database";
 import migrator from "models/migrator";
 import user from "models/user";
 import session from "models/session";
+import activation from "models/activation.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -60,6 +61,10 @@ async function createUser(userObject) {
   });
 }
 
+async function activateUser(user) {
+  return await activation.activateUserByUserId(user.id);
+}
+
 async function createSession(userId) {
   return await session.create(userId);
 }
@@ -87,6 +92,17 @@ async function getLastEmail() {
   };
 }
 
+function extractUUID(emailTextBody) {
+  const uuidRegex =
+    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+
+  const foundUUIDs = emailTextBody.match(uuidRegex);
+  if (foundUUIDs) {
+    return foundUUIDs[0];
+  }
+  return null;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -95,6 +111,8 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
+  activateUser,
 };
 
 export default orchestrator;
