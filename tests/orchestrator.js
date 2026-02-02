@@ -105,7 +105,7 @@ function extractUUID(emailTextBody) {
 
 async function addFeaturesToUser(userObject, features) {
   const updatedUser = await user.addFeatures(userObject, features);
-  
+
   return updatedUser;
 }
 
