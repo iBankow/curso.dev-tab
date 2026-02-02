@@ -225,9 +225,12 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: "uniqueUser2",
-        email: createdUser.email,
-        features: ["create:session", "read:session", "update:user"],
-        password: responseBody.password,
+        features: [
+          "create:session",
+          "read:session",
+          "read:user:self",
+          "update:user",
+        ],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -268,9 +271,12 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
-        email: responseBody.email,
-        features: ["create:session", "read:session", "update:user"],
-        password: responseBody.password,
+        features: [
+          "create:session",
+          "read:session",
+          "read:user:self",
+          "update:user",
+        ],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -312,9 +318,12 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: responseBody.id,
         username: createdUser.username,
-        email: createdUser.email,
-        features: ["create:session", "read:session", "update:user"],
-        password: responseBody.password,
+        features: [
+          "create:session",
+          "read:session",
+          "read:user:self",
+          "update:user",
+        ],
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -379,9 +388,7 @@ describe("PATCH /api/v1/users/[username]", () => {
       expect(responseBody).toEqual({
         id: defaultUser.id,
         username: "AlteredDefaultUser",
-        email: defaultUser.email,
         features: defaultUser.features,
-        password: defaultUser.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });

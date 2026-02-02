@@ -38,9 +38,7 @@ describe("Use case: Registration Flow(all successful)", () => {
     expect(createdUser).toEqual({
       id: createdUser.id,
       username: "NewUser",
-      email: "newuser@email.com",
       features: ["read:activation_token"],
-      password: createdUser.password,
       created_at: createdUser.created_at,
       updated_at: createdUser.updated_at,
     });
@@ -99,7 +97,12 @@ describe("Use case: Registration Flow(all successful)", () => {
 
     const updatedUser = await user.findOneByUsername("NewUser");
 
-    expect(updatedUser.features).toEqual(["create:session", "read:session", "update:user"]);
+    expect(updatedUser.features).toEqual([
+      "create:session",
+      "read:session",
+      "read:user:self",
+      "update:user",
+    ]);
   });
 
   test("Login", async () => {
