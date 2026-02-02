@@ -49,7 +49,7 @@ async function waitForAllServices() {
 }
 
 async function runPendingMigrations() {
-  await migrator.runPedingMigrations();
+  await migrator.runPendingMigrations();
 }
 
 async function createUser(userObject) {
