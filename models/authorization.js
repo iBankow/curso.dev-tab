@@ -8,6 +8,7 @@ const availableFeatures = [
   "update:user",
   "update:user:others",
   // SESSION
+  "read:session",
   "create:session",
   "delete:session",
   // ACTIVATION TOKEN
