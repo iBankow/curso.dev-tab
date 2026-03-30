@@ -5,6 +5,7 @@ import database from "infra/database";
 import migrator from "models/migrator";
 import user from "models/user";
 import session from "models/session";
+import activation from "models/activation.js";
 
 const emailHttpUrl = `http://${process.env.EMAIL_HTTP_HOST}:${process.env.EMAIL_HTTP_PORT}`;
 
@@ -48,7 +49,7 @@ async function waitForAllServices() {
 }
 
 async function runPendingMigrations() {
-  await migrator.runPedingMigrations();
+  await migrator.runPendingMigrations();
 }
 
 async function createUser(userObject) {
@@ -58,6 +59,10 @@ async function createUser(userObject) {
     email: userObject?.email || faker.internet.email(),
     password: userObject?.password || "validpassowrd",
   });
+}
+
+async function activateUser(user) {
+  return await activation.activateUserByUserId(user.id);
 }
 
 async function createSession(userId) {
@@ -87,6 +92,23 @@ async function getLastEmail() {
   };
 }
 
+function extractUUID(emailTextBody) {
+  const uuidRegex =
+    /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/;
+
+  const foundUUIDs = emailTextBody.match(uuidRegex);
+  if (foundUUIDs) {
+    return foundUUIDs[0];
+  }
+  return null;
+}
+
+async function addFeaturesToUser(userObject, features) {
+  const updatedUser = await user.addFeatures(userObject, features);
+
+  return updatedUser;
+}
+
 const orchestrator = {
   waitForAllServices,
   clearDatabase,
@@ -95,6 +117,9 @@ const orchestrator = {
   createSession,
   deleteAllEmails,
   getLastEmail,
+  extractUUID,
+  activateUser,
+  addFeaturesToUser,
 };
 
 export default orchestrator;
